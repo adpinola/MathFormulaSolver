@@ -22,8 +22,6 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "Build (GCC) Math Formula Solver",
-            "miDebuggerPath": "/usr/bin/gdb"            
         }
     ]
 }

@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "formulaSolver.h":"cpp",
         "cjson.h": "cpp",
         "in.h": "cpp",
         "typeinfo": "cpp",
