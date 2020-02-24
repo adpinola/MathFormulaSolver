@@ -41,10 +41,10 @@ void ReplaceStringInPlace(std::string &subject, const std::string &search,
 // Caracteres validos son solo letras y numeros, los incorrectos seran reemplazados por "_"
 void Formula::addVariable(string nombre, float valor)
 {
-    ReplaceStringInPlace(nombre," ", "_");
+    ReplaceStringInPlace(nombre, " ", "_");
     for (auto itr = nombre.begin(); itr != nombre.end(); ++itr)
     {
-        if ( (*itr) < '0' || ((*itr) > '9' && (*itr) < 'A') || ((*itr) > 'Z' && (*itr) < 'a') || (*itr) > 'z')
+        if ((*itr) < '0' || ((*itr) > '9' && (*itr) < 'A') || ((*itr) > 'Z' && (*itr) < 'a') || (*itr) > 'z')
             *itr = '_';
     }
     variable.insert(pair<string, float>(nombre, valor));
@@ -74,20 +74,30 @@ void Formula::Parse(string ecuacion)
 
 void Formula::Parse(string ecuacion, eqNode *nodo)
 {
-    int n_parentesis = 0;
+    int n_parentesis = 0, n_parentesisT2 = 0;
     int n_pos = 0;
     bool operator_found = false;
     // Verifico si puedo quitar los parentesis de los extremos
-    if (ecuacion.find("(") == 0 && ecuacion.find_last_of(")") == ecuacion.length() - 1)
+    while (ecuacion.find("(") == 0 && ecuacion.find_last_of(")") == ecuacion.length() - 1 && n_parentesis == 0)
     {
         ecuacion.pop_back();
         ecuacion.erase(ecuacion.begin());
-        if (ecuacion.find_first_of(")") < ecuacion.find_first_of("("))
+        for (auto itr = ecuacion.begin(); itr != ecuacion.end(); ++itr)
+        {
+            if ((*itr) == '(')
+                n_parentesis++;
+            if ((*itr) == ')')
+                n_parentesis--;
+            if (n_parentesis < 0) // significa que cerre mas terminos de los que debia
+                break;
+        }
+        if (n_parentesis < 0)
         {
             ecuacion = ecuacion + ")";
             ecuacion = "(" + ecuacion;
         }
     }
+    n_parentesis = 0;
     // Primero voy a buscar los '+' y '-' que separan terminos
     // Como segundo paso hago lo mismo con '*' y '/'
     for (int priority = 0; priority < OPERATOR_PRIORITY_LEVELS; priority++)
@@ -115,6 +125,22 @@ void Formula::Parse(string ecuacion, eqNode *nodo)
                 // Esta en la cima del arbol de izquierda a derecha
                 string T1 = ecuacion.substr(0, n_pos - 1);
                 string T2 = ecuacion.substr(n_pos);
+                // Tengo que tener en cuenta que por la reagrupacion de la ecuacion tengo que cambiar algunos signos
+                if ((*itr) == operators[priority][1])
+                {
+                    n_parentesisT2 = 0;
+                    for (auto itrT2 = T2.begin(); itrT2 != T2.end(); ++itrT2)
+                    {
+                        if ((*itrT2) == '(')
+                            n_parentesisT2++;
+                        if ((*itrT2) == ')')
+                            n_parentesisT2--;
+                        if ((*itrT2) == operators[priority][1] && n_parentesisT2 == 0)
+                            *itrT2 = operators[priority][0];
+                        else if ((*itrT2) == operators[priority][0] && n_parentesisT2 == 0)
+                            *itrT2 = operators[priority][1];
+                    }
+                }
                 //cout << "Ecuacion del Nodo @" << nodo << ": " << T1 << " " << *itr << " " << T2 << endl;
                 Parse(T1, nodo->left); // Parseo el primer termino
                 //cout << "Nodo left @" << nodo->left << ": " << nodo->equation << " " << nodo->operation << endl;
@@ -137,27 +163,74 @@ void Formula::Parse(string ecuacion, eqNode *nodo)
     }
 }
 
+float Formula::calculate(eqNode *nodo)
+{
+    map<string, float>::iterator key;
+    if (nodo->left == NULL && nodo->right == NULL)
+    {
+        key = variable.find(nodo->equation);
+        key != variable.end() ? nodo->result = (*key).second : nodo->result = atof(nodo->equation.c_str());
+    }
+    else
+    {
+        switch (nodo->operation)
+        {
+        case '+':
+            nodo->result = calculate(nodo->left) + calculate(nodo->right);
+            break;
+        case '-':
+            nodo->result = calculate(nodo->left) - calculate(nodo->right);
+            break;
+        case '*':
+            nodo->result = calculate(nodo->left) * calculate(nodo->right);
+            break;
+        case '/':
+            nodo->result = calculate(nodo->left) / calculate(nodo->right);
+            break;
+        default:
+            break;
+        }
+        //cout << nodo->equation << " = " << nodo->result << endl;
+    }
+    return nodo->result;
+}
+
+float Formula::calculate()
+{
+    if (root != NULL)
+        return calculate(root);
+    else
+        return 0;
+}
+
+void Formula::showFormula(eqNode *nodo)
+{
+    if (nodo->left == NULL && nodo->right == NULL)
+    {
+        cout << nodo->equation;
+    }
+    else
+    {
+        cout << "(";
+        showFormula(nodo->left);
+        cout << nodo->operation;
+        showFormula(nodo->right);
+        cout << ")";
+    }
+}
+
 void Formula::showFormula()
 {
-    cout << root->equation << endl;
-}
-
-void Formula::DisplayTree(eqNode *nodo)
-{
-    cout << "Formula Completa: " << nodo->equation << " || Operador principal: " << nodo->operation << endl;
-    if (nodo->left != NULL)
-        DisplayTree(nodo->left);
-    if (nodo->right != NULL)
-        DisplayTree(nodo->right);
-}
-
-void Formula::DisplayTree()
-{
-    cout << "Formula Completa: " << root->equation << " || Operador principal: " << root->operation << endl;
-    if (root->left != NULL)
-        DisplayTree(root->left);
-    if (root->right != NULL)
-        DisplayTree(root->right);
+    if (root != NULL)
+    {
+        cout << "Formula Parseada: ";
+        showFormula(root);
+        cout << endl;
+    }
+    else
+    {
+        cout << "Formula Vacia" << endl;
+    }
 }
 
 // Constructor

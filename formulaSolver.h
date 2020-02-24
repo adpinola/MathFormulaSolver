@@ -26,17 +26,20 @@ private:
     eqNode *root;                // Arbol que contiene la formula completa
     map<string, float> variable; // Listado de variables que intervienen en la formula
 
-    void deleteFormula(eqNode *);
     void Parse(string, eqNode *); // parsea una formula y la coloca en el arbol correspondiente
-    void DisplayTree(eqNode *);
+    void showFormula(eqNode *);
+    float calculate(eqNode *);
+    void deleteFormula(eqNode *);
+
 public:
-    void Parse(string);              // parsea una formula y la coloca en el arbol correspondiente
-    void showFormula();
-    void DisplayTree();
-    float calculate();           // Calcula el resultado de la formula
     void addVariable(string, float); //Agrega variable
     void showVariables();
+
+    void Parse(string); // parsea una formula y la coloca en el arbol correspondiente
+    void showFormula();
+    float calculate(); // Calcula el resultado de la formula
     void deleteFormula();
+
     Formula();       // Constructor por omision
     Formula(string); //Constructor con formula de entrada
     ~Formula();

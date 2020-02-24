@@ -15,13 +15,24 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-	string formulaKPI="(( A + B * C + D ) / ( E - F / G - I ) + ( J / K + L ) )";
-	Formula LTE_5051a;
-	LTE_5051a.addVariable("M8018C1",13.54);
-	LTE_5051a.addVariable("M8031C51",0.04);
-	LTE_5051a.addVariable("M8000C51",10);
+	string formulaKPI(argv[1]);
+	Formula testFormula;
+	testFormula.addVariable("A", 13.54);
+	testFormula.addVariable("B", 0.04);
+	testFormula.addVariable("C", 10);
+	testFormula.addVariable("D", 100);
+	testFormula.addVariable("E", 5.3);
+	testFormula.addVariable("F", 2);
+	testFormula.addVariable("G", 7);
+	testFormula.addVariable("H", 1.43);
+	testFormula.addVariable("I", 0.8);
+	testFormula.addVariable("J", 6);
+	testFormula.addVariable("K", 11.45);
+	testFormula.addVariable("L", 3);
+	testFormula.showVariables();
 	cout << "Formula Original: " << formulaKPI << endl;
-	LTE_5051a.Parse(formulaKPI);
-	LTE_5051a.showVariables();
-    return 0;
+	testFormula.Parse(formulaKPI);
+	testFormula.showFormula();
+	cout << "Resultado testFormula = " << testFormula.calculate() << endl;
+	return 0;
 }
