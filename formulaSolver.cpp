@@ -194,7 +194,10 @@ float Formula::calculate(eqNode *nodo)
             nodo->result = calculate(nodo->left) * calculate(nodo->right);
             break;
         case '/':
-            nodo->result = calculate(nodo->left) / calculate(nodo->right);
+            if (calculate(nodo->right) == 0 || calculate(nodo->left) == 0)
+                nodo->result = 0;
+            else
+                nodo->result = calculate(nodo->left) / calculate(nodo->right);
             break;
         default:
             break;
