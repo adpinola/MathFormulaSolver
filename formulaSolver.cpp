@@ -35,6 +35,14 @@ void ReplaceStringInPlace(std::string &subject, const std::string &search,
     }
 }
 
+// defineVarMap: Se apunta aqui a la variable global que contiene el mapa de variables
+// La idea es utilizar un unico mapa global que contenga todas las variables utilizadas en formulas
+// de esta manera se pueden tener muchar Formulas apuntando al mismo mapa.
+void Formula::defineVarMap(map<string, float> *pointer_to_map)
+{
+    lista_variables = pointer_to_map;
+}
+
 // addVariable: Agrega al mapa de variables para calcular el resultado de la formula
 //              la variable con el nombre indicado @nombre y del valor @valor
 // Se quitan todos los espacios en blanco y se reemplazan por "_"
@@ -47,13 +55,13 @@ void Formula::addVariable(string nombre, float valor)
         if ((*itr) < '0' || ((*itr) > '9' && (*itr) < 'A') || ((*itr) > 'Z' && (*itr) < 'a') || (*itr) > 'z')
             *itr = '_';
     }
-    variable.insert(pair<string, float>(nombre, valor));
+    lista_variables->insert(pair<string, float>(nombre, valor));
 }
 
 void Formula::showVariables()
 {
     map<string, float>::iterator itr;
-    for (itr = variable.begin(); itr != variable.end(); ++itr)
+    for (itr = lista_variables->begin(); itr != lista_variables->end(); ++itr)
     {
         cout << itr->first << "=" << itr->second << endl;
     }
@@ -69,6 +77,7 @@ void Formula::Parse(string ecuacion)
         root->right = NULL;
     }
     ReplaceStringInPlace(ecuacion, " ", "");
+    //ReplaceStringInPlace(ecuacion, "\r", "");
     Parse(ecuacion, root);
 }
 
@@ -168,8 +177,8 @@ float Formula::calculate(eqNode *nodo)
     map<string, float>::iterator key;
     if (nodo->left == NULL && nodo->right == NULL)
     {
-        key = variable.find(nodo->equation);
-        key != variable.end() ? nodo->result = (*key).second : nodo->result = atof(nodo->equation.c_str());
+        key = lista_variables->find(nodo->equation);
+        key != lista_variables->end() ? nodo->result = (*key).second : nodo->result = atof(nodo->equation.c_str());
     }
     else
     {
@@ -203,33 +212,28 @@ float Formula::calculate()
         return 0;
 }
 
-void Formula::showFormula(eqNode *nodo)
+string Formula::showFormula(eqNode *nodo)
 {
     if (nodo->left == NULL && nodo->right == NULL)
     {
-        cout << nodo->equation;
+        return nodo->equation;
     }
     else
     {
-        cout << "(";
-        showFormula(nodo->left);
-        cout << nodo->operation;
-        showFormula(nodo->right);
-        cout << ")";
+        return "(" + showFormula(nodo->left) + nodo->operation + showFormula(nodo->right) + ")";
     }
 }
 
-void Formula::showFormula()
+string Formula::showFormula()
 {
     if (root != NULL)
     {
-        cout << "Formula Parseada: ";
-        showFormula(root);
-        cout << endl;
+        //cout << "Formula Parseada: ";
+        return showFormula(root);
     }
     else
     {
-        cout << "Formula Vacia" << endl;
+        return "Formula Vacia";
     }
 }
 
@@ -239,6 +243,7 @@ Formula::Formula(string ecuacion)
     root = new eqNode;
     root->left = NULL;
     root->right = NULL;
+    lista_variables = NULL;
     Parse(ecuacion, root);
 }
 
@@ -246,6 +251,7 @@ Formula::Formula(string ecuacion)
 Formula::Formula()
 {
     root = NULL;
+    lista_variables = NULL;
 }
 
 void Formula::deleteFormula(eqNode *nodo)

@@ -24,19 +24,20 @@ class Formula
 {
 private:
     eqNode *root;                // Arbol que contiene la formula completa
-    map<string, float> variable; // Listado de variables que intervienen en la formula
+    map<string, float>* lista_variables; // Listado de variables que intervienen en la formula
 
     void Parse(string, eqNode *); // parsea una formula y la coloca en el arbol correspondiente
-    void showFormula(eqNode *);
+    string showFormula(eqNode *);
     float calculate(eqNode *);
     void deleteFormula(eqNode *);
 
 public:
+    void defineVarMap(map<string, float> *); // Se apunta aqui a la variable global que contiene el mapa de variables
     void addVariable(string, float); //Agrega variable
     void showVariables();
 
     void Parse(string); // parsea una formula y la coloca en el arbol correspondiente
-    void showFormula();
+    string showFormula();
     float calculate(); // Calcula el resultado de la formula
     void deleteFormula();
 
